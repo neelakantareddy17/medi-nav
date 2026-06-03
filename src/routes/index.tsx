@@ -5,6 +5,7 @@ import { appointments } from "@/data/appointments";
 import { queueStatus } from "@/data/queue";
 import { AppointmentCard } from "@/components/AppointmentCard";
 import { QueueCard } from "@/components/QueueCard";
+import { useAuth } from "@/context/AuthContext";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,13 +25,14 @@ const quickActions = [
 ] as const;
 
 function Home() {
+  const { user } = useAuth();
   const upcoming = appointments.find((a) => a.status === "upcoming");
 
   return (
     <div>
       <header className="px-5 pt-8 pb-2">
         <p className="text-sm text-muted-foreground">Good afternoon</p>
-        <h1 className="text-2xl font-bold tracking-tight">Hi, Alex 👋</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Hi, {user?.name ?? "Alex"} 👋</h1>
       </header>
 
       <section className="px-5 pt-4">

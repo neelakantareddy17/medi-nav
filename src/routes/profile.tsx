@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ChevronRight, FileText, Heart, Bell, Shield, HelpCircle, LogOut } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { prescriptions } from "@/data/medicines";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -22,18 +25,33 @@ const menu = [
 ];
 
 function Profile() {
+  const navigate = useNavigate();
+  const auth = useAuth();
+
+  const handleLogout = () => {
+    auth.logout();
+    navigate({ to: "/login", replace: true });
+  };
+
   return (
     <div>
       <PageHeader title="Profile" />
 
       <div className="px-5">
         <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
-          <img src="https://i.pravatar.cc/120?img=15" alt="Alex" className="h-14 w-14 rounded-full object-cover" />
+          <img src="https://i.pravatar.cc/120?img=15" alt={auth.user?.name ?? "Alex"} className="h-14 w-14 rounded-full object-cover" />
           <div className="flex-1">
-            <p className="font-semibold">Alex Morgan</p>
-            <p className="text-xs text-muted-foreground">alex.morgan@email.com</p>
+            <p className="font-semibold">{auth.user?.name ?? "Alex Morgan"}</p>
+            <p className="text-xs text-muted-foreground">{auth.user?.email ?? "alex.morgan@email.com"}</p>
           </div>
           <button className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium">Edit</button>
+        </div>
+
+        <div className="mt-4">
+          <Button variant="outline" onClick={handleLogout} className="h-11 w-full rounded-2xl text-sm font-medium">
+            <LogOut className="h-4 w-4" />
+            Fake Logout
+          </Button>
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
@@ -72,7 +90,11 @@ function Profile() {
           <ul className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
             {menu.map(({ icon: Icon, label }, i) => (
               <li key={label}>
-                <button className={`flex w-full items-center gap-3 px-4 py-3.5 text-left ${i > 0 ? "border-t border-border" : ""}`}>
+                <button
+                  type="button"
+                  onClick={label === "Log out" ? handleLogout : undefined}
+                  className={`flex w-full items-center gap-3 px-4 py-3.5 text-left ${i > 0 ? "border-t border-border" : ""}`}
+                >
                   <Icon className="h-4 w-4 text-muted-foreground" />
                   <span className="flex-1 text-sm">{label}</span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />

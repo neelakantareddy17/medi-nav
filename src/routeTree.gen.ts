@@ -9,12 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MedicinesRouteImport } from './routes/medicines'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QueueRoute = QueueRouteImport.update({
   id: '/queue',
   path: '/queue',
@@ -28,6 +35,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const MedicinesRoute = MedicinesRouteImport.update({
   id: '/medicines',
   path: '/medicines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppointmentsRoute = AppointmentsRouteImport.update({
@@ -44,43 +56,80 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/profile': typeof ProfileRoute
   '/queue': typeof QueueRoute
+  '/signup': typeof SignupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/profile': typeof ProfileRoute
   '/queue': typeof QueueRoute
+  '/signup': typeof SignupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/profile': typeof ProfileRoute
   '/queue': typeof QueueRoute
+  '/signup': typeof SignupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/appointments' | '/medicines' | '/profile' | '/queue'
+  fullPaths:
+    | '/'
+    | '/appointments'
+    | '/login'
+    | '/medicines'
+    | '/profile'
+    | '/queue'
+    | '/signup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/appointments' | '/medicines' | '/profile' | '/queue'
-  id: '__root__' | '/' | '/appointments' | '/medicines' | '/profile' | '/queue'
+  to:
+    | '/'
+    | '/appointments'
+    | '/login'
+    | '/medicines'
+    | '/profile'
+    | '/queue'
+    | '/signup'
+  id:
+    | '__root__'
+    | '/'
+    | '/appointments'
+    | '/login'
+    | '/medicines'
+    | '/profile'
+    | '/queue'
+    | '/signup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppointmentsRoute: typeof AppointmentsRoute
+  LoginRoute: typeof LoginRoute
   MedicinesRoute: typeof MedicinesRoute
   ProfileRoute: typeof ProfileRoute
   QueueRoute: typeof QueueRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/queue': {
       id: '/queue'
       path: '/queue'
@@ -100,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/medicines'
       fullPath: '/medicines'
       preLoaderRoute: typeof MedicinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/appointments': {
@@ -122,10 +178,22 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppointmentsRoute: AppointmentsRoute,
+  LoginRoute: LoginRoute,
   MedicinesRoute: MedicinesRoute,
   ProfileRoute: ProfileRoute,
   QueueRoute: QueueRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

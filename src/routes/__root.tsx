@@ -6,6 +6,8 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useNavigate,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -13,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { CartProvider } from "@/context/CartContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 function NotFoundComponent() {
   return (
@@ -84,12 +87,46 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-          <Outlet />
-        </div>
-        <BottomNavigation />
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <AppShell />
+        </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+const publicRoutes = new Set(["/login", "/signup"]);
+
+function AppShell() {
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { hydrated, user } = useAuth();
+  const isAuthRoute = publicRoutes.has(pathname);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    if (!user && !isAuthRoute) {
+      navigate({ to: "/login", replace: true });
+      return;
+    }
+
+    if (user && isAuthRoute) {
+      navigate({ to: "/", replace: true });
+    }
+  }, [hydrated, isAuthRoute, navigate, user]);
+
+  if (!hydrated) {
+    return <div className="flex min-h-screen items-center justify-center bg-background px-4 text-sm text-muted-foreground" />;
+  }
+
+  return (
+    <div className={`mx-auto min-h-screen max-w-md bg-background ${isAuthRoute ? "" : "pb-24"}`}>
+      <Outlet />
+      {!isAuthRoute && <BottomNavigation />}
+    </div>
   );
 }
