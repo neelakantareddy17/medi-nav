@@ -7,7 +7,8 @@ import { AppointmentCard } from "@/components/AppointmentCard";
 import { DoctorCard } from "@/components/DoctorCard";
 import { SearchBar } from "@/components/SearchBar";
 import { SlotPicker } from "@/components/SlotPicker";
-import { appointments, timeSlots } from "@/data/appointments";
+import { timeSlots } from "@/data/appointments";
+import { useAppointments } from "@/context/AppointmentContext";
 import { doctors, type Doctor } from "@/data/doctors";
 
 export const Route = createFileRoute("/appointments")({
@@ -31,6 +32,7 @@ function Appointments() {
     (d) => d.name.toLowerCase().includes(search.toLowerCase()) || d.specialty.toLowerCase().includes(search.toLowerCase()),
   );
 
+ const { appointments, addAppointment } = useAppointments();
   const list = appointments.filter((a) =>
     tab === "upcoming" ? a.status === "upcoming" : a.status !== "upcoming",
   );
@@ -96,13 +98,28 @@ function Appointments() {
                     <SlotPicker slots={timeSlots} selected={slot} onSelect={setSlot} />
                   </div>
                   <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    disabled={!slot}
-                    onClick={() => setConfirmed(true)}
-                    className="w-full rounded-full bg-foreground py-3.5 text-sm font-semibold text-background disabled:opacity-30"
-                  >
-                    Confirm booking · ${picked.fee}
-                  </motion.button>
+  whileTap={{ scale: 0.97 }}
+  disabled={!slot}
+  onClick={() => {
+    if (!picked || !slot) return;
+
+    addAppointment({
+      id: crypto.randomUUID(),
+      doctorId: picked.id,
+      doctorName: picked.name,
+      specialty: picked.specialty,
+      date: "Today",
+      time: slot,
+      status: "upcoming",
+      avatar: picked.avatar,
+    });
+
+    setConfirmed(true);
+  }}
+  className="w-full rounded-full bg-foreground py-3.5 text-sm font-semibold text-background disabled:opacity-30"
+>
+  Confirm booking · ${picked.fee}
+</motion.button>
                 </motion.div>
               )}
 

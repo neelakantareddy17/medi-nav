@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Pill, FileText, ChevronRight } from "lucide-react";
-import { appointments } from "@/data/appointments";
+
 import { queueStatus } from "@/data/queue";
 import { AppointmentCard } from "@/components/AppointmentCard";
 import { QueueCard } from "@/components/QueueCard";
 import { useAuth } from "@/context/AuthContext";
+import { useAppointments } from "@/context/AppointmentContext";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,8 +27,8 @@ const quickActions = [
 
 function Home() {
   const { user } = useAuth();
-  const upcoming = appointments.find((a) => a.status === "upcoming");
-
+  const { appointments } = useAppointments();
+  const upcoming = appointments?.find((a) => a.status === "upcoming");
   return (
     <div>
       <header className="px-5 pt-8 pb-2">
