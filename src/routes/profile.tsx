@@ -5,7 +5,8 @@ import { prescriptions } from "@/data/medicines";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "@tanstack/react-router";
-
+import { useAppointments } from "@/context/AppointmentContext";
+import { AppointmentCard } from "@/components/AppointmentCard";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
@@ -27,7 +28,14 @@ const menu = [
 function Profile() {
   const navigate = useNavigate();
   const auth = useAuth();
+  const { appointments } = useAppointments();
+  const upcomingAppointments = appointments.filter(
+    (a) => a.status === "upcoming"
+  );
 
+  const completedAppointments = appointments.filter(
+  (a) => a.status === "completed"
+);
   const handleLogout = () => {
     auth.logout();
     navigate({ to: "/login", replace: true });
@@ -55,18 +63,58 @@ function Profile() {
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
-          {[
-            { l: "Visits", v: "12" },
-            { l: "Reports", v: "5" },
-            { l: "Meds", v: "8" },
-          ].map((s) => (
-            <div key={s.l} className="rounded-2xl bg-secondary p-3 text-center">
-              <p className="text-lg font-bold">{s.v}</p>
-              <p className="text-[10px] text-muted-foreground">{s.l}</p>
-            </div>
-          ))}
-        </div>
+  {[
+    { l: "Visits", v: appointments.length.toString() },
+    { l: "Reports", v: prescriptions.length.toString() },
+    { l: "Meds", v: prescriptions.length.toString() },
+  ].map((s) => (
+    <div key={s.l} className="rounded-2xl bg-secondary p-3 text-center">
+      <p className="text-lg font-bold">{s.v}</p>
+      <p className="text-[10px] text-muted-foreground">{s.l}</p>
+    </div>
+  ))}
+</div>
+<section className="mt-6">
+  <h2 className="mb-3 text-sm font-semibold">
+    Upcoming Appointments
+  </h2>
 
+  <div className="space-y-3">
+    {upcomingAppointments.length === 0 ? (
+      <div className="rounded-2xl border border-border bg-card p-4 text-center text-sm text-muted-foreground">
+        No upcoming appointments
+      </div>
+    ) : (
+      upcomingAppointments.map((appt) => (
+        <AppointmentCard
+          key={appt.id}
+          appt={appt}
+        />
+      ))
+    )}
+  </div>
+
+</section>
+<section className="mt-6">
+  <h2 className="mb-3 text-sm font-semibold">
+    Appointment History
+  </h2>
+
+  <div className="space-y-3">
+    {completedAppointments.length === 0 ? (
+      <div className="rounded-2xl border border-border bg-card p-4 text-center text-sm text-muted-foreground">
+        No completed appointments
+      </div>
+    ) : (
+      completedAppointments.map((appt) => (
+        <AppointmentCard
+          key={appt.id}
+          appt={appt}
+        />
+      ))
+    )}
+  </div>
+</section>
         <section className="mt-6">
           <h2 className="mb-3 text-sm font-semibold">Prescription history</h2>
           <div className="space-y-2">

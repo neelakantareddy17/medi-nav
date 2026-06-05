@@ -33,9 +33,26 @@ function Appointments() {
   );
 
  const { appointments, addAppointment } = useAppointments();
-  const list = appointments.filter((a) =>
-    tab === "upcoming" ? a.status === "upcoming" : a.status !== "upcoming",
-  );
+  const list = appointments
+  .filter((a) =>
+    tab === "upcoming"
+      ? a.status === "upcoming"
+      : a.status !== "upcoming"
+  )
+  .sort((a, b) => {
+    const getMinutes = (time: string) => {
+      const [t, period] = time.split(" ");
+      let [hours, minutes] = t.split(":").map(Number);
+
+      if (period === "PM" && hours !== 12) hours += 12;
+      if (period === "AM" && hours === 12) hours = 0;
+
+      return hours * 60 + minutes;
+    };
+
+    return getMinutes(a.time) - getMinutes(b.time);
+  });
+  
 
   return (
     <div>
@@ -97,11 +114,23 @@ function Appointments() {
                     <p className="mb-2 text-sm font-semibold">Pick a time</p>
                     <SlotPicker slots={timeSlots} selected={slot} onSelect={setSlot} />
                   </div>
-                  <motion.button
+             <motion.button
   whileTap={{ scale: 0.97 }}
   disabled={!slot}
   onClick={() => {
     if (!picked || !slot) return;
+
+    const alreadyBooked = appointments.some(
+      (a) =>
+        a.doctorId === picked.id &&
+        a.time === slot &&
+        a.status === "upcoming"
+    );
+
+    if (alreadyBooked) {
+      alert("You already have an appointment for this slot");
+      return;
+    }
 
     addAppointment({
       id: crypto.randomUUID(),

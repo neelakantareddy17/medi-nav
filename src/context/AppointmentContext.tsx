@@ -4,6 +4,7 @@ import { appointments as initialAppointments, type Appointment } from "@/data/ap
 type AppointmentContextType = {
   appointments: Appointment[];
   addAppointment: (appointment: Appointment) => void;
+  cancelAppointment: (id: string) => void;
 };
 
 const AppointmentContext = createContext<AppointmentContextType | null>(null);
@@ -18,6 +19,16 @@ export function AppointmentProvider({
   const addAppointment = (appointment: Appointment) => {
     setAppointments((prev) => [...prev, appointment]);
   };
+
+  const cancelAppointment = (id: string) => {
+  setAppointments((prev) =>
+    prev.map((appt) =>
+      appt.id === id
+        ? { ...appt, status: "cancelled" }
+        : appt
+    )
+  );
+};
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -40,6 +51,7 @@ export function AppointmentProvider({
       value={{
         appointments,
         addAppointment,
+        cancelAppointment,
       }}
     >
       {children}
