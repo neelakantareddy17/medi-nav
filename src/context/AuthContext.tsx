@@ -1,85 +1,115 @@
 import * as React from "react";
-
 import {
-  clearStoredUser,
-  createDemoUser,
-  createSignupUser,
-  getStoredUser,
-  persistUser,
-  type AuthUser,
-  type LoginInput,
-  type SignupInput,
-} from "@/services/authService";
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  type User,
+} from "firebase/auth";
+
+import { auth } from "@/lib/firebase";
+import type { LoginInput, SignupInput } from "@/services/authService";
+
+type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+};
 
 type AuthContextValue = {
   user: AuthUser | null;
   hydrated: boolean;
   isAuthenticated: boolean;
-  login: (input: LoginInput) => AuthUser;
-  signup: (input: SignupInput) => AuthUser;
-  loginAsGuest: () => AuthUser;
-  logout: () => void;
+  login: (input: LoginInput) => Promise<void>;
+  signup: (input: SignupInput) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
-const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
+const AuthContext = React.createContext<AuthContextValue | undefined>(
+  undefined
+);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<AuthUser | null>(() => getStoredUser());
+function mapUser(user: User): AuthUser {
+  return {
+    id: user.uid,
+    name: user.displayName || "User",
+    email: user.email || "",
+  };
+}
+
+export function AuthProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] = React.useState<AuthUser | null>(null);
   const [hydrated, setHydrated] = React.useState(false);
 
   React.useEffect(() => {
-    const storedUser = getStoredUser();
-    setUser(storedUser);
-    setHydrated(true);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser ? mapUser(firebaseUser) : null);
+      setHydrated(true);
+    });
+
+    return unsubscribe;
   }, []);
 
-  React.useEffect(() => {
-    const handleStorage = () => {
-      setUser(getStoredUser());
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
-
-  const value = React.useMemo<AuthContextValue>(() => {
-    return {
+  const value = React.useMemo<AuthContextValue>(
+    () => ({
       user,
       hydrated,
       isAuthenticated: Boolean(user),
-      login: ({ email }) => {
-        const nextUser = createDemoUser(email);
-        setUser(nextUser);
-        persistUser(nextUser);
-        return nextUser;
-      },
-      signup: ({ fullName, email }) => {
-        const nextUser = createSignupUser(fullName, email);
-        setUser(nextUser);
-        persistUser(nextUser);
-        return nextUser;
-      },
-      loginAsGuest: () => {
-        const nextUser = createDemoUser();
-        setUser(nextUser);
-        persistUser(nextUser);
-        return nextUser;
-      },
-      logout: () => {
-        setUser(null);
-        clearStoredUser();
-      },
-    };
-  }, [hydrated, user]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+      login: async ({ email, password }) => {
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+      },
+
+      signup: async ({
+        fullName,
+        email,
+        password,
+      }) => {
+        const cred =
+          await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+
+        await updateProfile(
+          cred.user,
+          {
+            displayName: fullName,
+          }
+        );
+      },
+
+      logout: async () => {
+        await signOut(auth);
+      },
+    }),
+    [user, hydrated]
+  );
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = React.useContext(AuthContext);
 
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error(
+      "useAuth must be used within an AuthProvider"
+    );
   }
 
   return context;

@@ -16,16 +16,30 @@ export function SignupPage() {
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [error, setError] = React.useState("");
 
-  const handleSignup = () => {
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+ const handleSignup = async () => {
+  if (password !== confirmPassword) {
+    setError("Passwords do not match.");
+    return;
+  }
 
+  try {
     setError("");
-    auth.signup({ fullName, email, password, confirmPassword });
-    navigate({ to: "/", replace: true });
-  };
+
+    await auth.signup({
+      fullName,
+      email,
+      password,
+      confirmPassword,
+    });
+
+    navigate({
+      to: "/",
+      replace: true,
+    });
+  } catch (error: any) {
+    setError(error.message);
+  }
+};
 
   return (
     <div className="min-h-screen px-5 pb-10 pt-6">

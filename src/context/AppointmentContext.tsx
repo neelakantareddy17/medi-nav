@@ -9,6 +9,7 @@ type AppointmentContextType = {
     id: string,
     token: number
   ) => void;
+  completeAppointment: (id: string) => void;
 };
 
 const AppointmentContext = createContext<AppointmentContextType | null>(null);
@@ -49,6 +50,20 @@ const checkInAppointment = (
     )
   );
 };
+const completeAppointment = (
+  id: string
+) => {
+  setAppointments((prev) =>
+    prev.map((appt) =>
+      appt.id === id
+        ? {
+            ...appt,
+            status: "completed",
+          }
+        : appt
+    )
+  );
+};
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -72,6 +87,7 @@ const checkInAppointment = (
         addAppointment,
         cancelAppointment,
         checkInAppointment,
+        completeAppointment,
       }}
     >
       {children}

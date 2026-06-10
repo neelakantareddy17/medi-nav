@@ -13,14 +13,34 @@ export function LoginPage() {
   const [email, setEmail] = React.useState("demo@gmail.com");
   const [password, setPassword] = React.useState("");
 
-  const handleLogin = () => {
-    auth.login({ email, password });
-    navigate({ to: "/", replace: true });
-  };
+ const handleLogin = async () => {
+  try {
+    await auth.login({
+      email,
+      password,
+    });
 
-  const handleGuest = () => {
-    auth.loginAsGuest();
-    navigate({ to: "/", replace: true });
+    navigate({
+      to: "/",
+      replace: true,
+    });
+  } catch (error) {
+    alert("Invalid email or password");
+    console.error(error);
+  }
+};
+
+  const handleGuest = async () => {
+    try {
+      await auth.login({
+        email: "guest@example.com",
+        password: "guest",
+      });
+      navigate({ to: "/", replace: true });
+    } catch (error) {
+      alert("Failed to login as guest");
+      console.error(error);
+    }
   };
 
   return (
