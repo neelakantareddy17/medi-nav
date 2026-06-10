@@ -17,6 +17,7 @@ import { BottomNavigation } from "@/components/BottomNavigation";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppointmentProvider } from "@/context/AppointmentContext";
+import { QueueProvider } from "@/context/QueueContext";
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -89,9 +90,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
   <AppointmentProvider>
-    <CartProvider>
-      <AppShell />
-    </CartProvider>
+    <QueueProvider>
+      <CartProvider>
+        <AppShell />
+      </CartProvider>
+    </QueueProvider>
   </AppointmentProvider>
 </AuthProvider>
     </QueryClientProvider>

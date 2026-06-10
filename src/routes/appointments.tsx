@@ -33,25 +33,25 @@ function Appointments() {
   );
 
  const { appointments, addAppointment } = useAppointments();
+
   const list = appointments
-  .filter((a) =>
-    tab === "upcoming"
-      ? a.status === "upcoming"
-      : a.status !== "upcoming"
-  )
-  .sort((a, b) => {
-    const getMinutes = (time: string) => {
-      const [t, period] = time.split(" ");
-      let [hours, minutes] = t.split(":").map(Number);
+  .filter((a) => {
+    if (tab === "upcoming") {
+      return (
+        a.status === "upcoming" ||
+        a.status === "checked-in"
+      );
+    }
 
-      if (period === "PM" && hours !== 12) hours += 12;
-      if (period === "AM" && hours === 12) hours = 0;
+    if (tab === "past") {
+      return (
+        a.status === "completed" ||
+        a.status === "cancelled"
+      );
+    }
 
-      return hours * 60 + minutes;
-    };
-
-    return getMinutes(a.time) - getMinutes(b.time);
-  });
+    return false;
+  })
   
 
   return (
@@ -132,16 +132,16 @@ function Appointments() {
       return;
     }
 
-    addAppointment({
-      id: crypto.randomUUID(),
-      doctorId: picked.id,
-      doctorName: picked.name,
-      specialty: picked.specialty,
-      date: "Today",
-      time: slot,
-      status: "upcoming",
-      avatar: picked.avatar,
-    });
+ addAppointment({
+  id: crypto.randomUUID(),
+  doctorId: picked.id,
+  doctorName: picked.name,
+  specialty: picked.specialty,
+  date: "Today",
+  time: slot,
+  status: "upcoming",
+  avatar: picked.avatar,
+});
 
     setConfirmed(true);
   }}

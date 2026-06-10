@@ -1,15 +1,27 @@
 import { motion } from "framer-motion";
 import { Calendar, Clock } from "lucide-react";
 import type { Appointment } from "@/data/appointments";
+import { useQueue } from "@/context/QueueContext";
 import { useAppointments } from "@/context/AppointmentContext";
 const statusStyles: Record<Appointment["status"], string> = {
   upcoming: "bg-foreground text-background",
+  "checked-in": "bg-blue-100 text-blue-700",
   completed: "bg-secondary text-muted-foreground",
   cancelled: "bg-destructive/10 text-destructive",
 };
 
 export function AppointmentCard({ appt }: { appt: Appointment }) {
-  const { cancelAppointment } = useAppointments();
+  const {
+  cancelAppointment,
+  checkInAppointment,
+} = useAppointments();
+
+const { generateToken } = useQueue();
+const handleCheckIn = () => {
+  const token = generateToken(appt.doctorId);
+
+  checkInAppointment(appt.id, token);
+};
 
   return (
     <motion.div
@@ -38,16 +50,35 @@ export function AppointmentCard({ appt }: { appt: Appointment }) {
       {appt.time}
     </span>
   </div>
+  {appt.status === "checked-in" && appt.token && (
+  <div className="mt-3 rounded-xl bg-secondary p-3 text-center">
+    <p className="text-xs text-muted-foreground">
+      Your Token
+    </p>
+    <p className="text-lg font-bold">
+      #{appt.token}
+    </p>
+  </div>
+)}
 
   {appt.status === "upcoming" && (
+  <div className="mt-3 space-y-2">
+    <button
+      onClick={handleCheckIn}
+      className="w-full rounded-xl bg-foreground py-2 text-xs font-medium text-background"
+    >
+      Check In
+    </button>
+
     <button
       onClick={() => cancelAppointment(appt.id)}
-      className="mt-3 w-full rounded-xl border border-border py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/5"
+      className="w-full rounded-xl border border-border py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/5"
     >
       Cancel Appointment
     </button>
-  )}
+  </div>
+)}
 </div>
     </motion.div>
   );
-}
+} 

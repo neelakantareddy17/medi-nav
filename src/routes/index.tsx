@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Pill, FileText, ChevronRight } from "lucide-react";
 
-import { queueStatus } from "@/data/queue";
+import { useQueue } from "@/context/QueueContext";
 import { AppointmentCard } from "@/components/AppointmentCard";
 import { QueueCard } from "@/components/QueueCard";
 import { useAuth } from "@/context/AuthContext";
@@ -27,8 +27,79 @@ const quickActions = [
 
 function Home() {
   const { user } = useAuth();
+  const { getQueue } = useQueue();
   const { appointments } = useAppointments();
-  const upcoming = appointments?.find((a) => a.status === "upcoming");
+  console.log("ALL APPOINTMENTS", appointments);
+
+console.log(
+  "CHECKED IN",
+  appointments.filter(
+    (a) => a.status === "checked-in"
+  )
+);
+  const checkedInAppointments = appointments.filter(
+  (a) => a.status === "checked-in" && a.token
+);
+
+const upcoming =
+
+  checkedInAppointments.length > 0
+    ? checkedInAppointments.reduce((best, current) => {
+        const bestQueue = getQueue(best.doctorId);
+        const currentQueue = getQueue(current.doctorId);
+
+        const bestAhead =
+          (best.token ?? 0) -
+          (bestQueue?.currentToken ?? 0);
+
+        const currentAhead =
+          (current.token ?? 0) -
+          (currentQueue?.currentToken ?? 0);
+
+        if (currentAhead < bestAhead) {
+  return current;
+}
+
+if (currentAhead === bestAhead) {
+  return (currentQueue?.currentToken ?? 0) >
+    (bestQueue?.currentToken ?? 0)
+    ? current
+    : best;
+}
+
+return best;
+      })
+    : appointments.find(
+        (a) => a.status === "upcoming"
+      );
+      console.log("SELECTED APPOINTMENT", {
+  doctor: upcoming?.doctorName,
+  token: upcoming?.token,
+});
+console.log(
+  checkedInAppointments.map((a) => ({
+    doctor: a.doctorName,
+    token: a.token,
+    current: getQueue(a.doctorId)?.currentToken,
+    ahead:
+      (a.token ?? 0) -
+      (getQueue(a.doctorId)?.currentToken ?? 0),
+  }))
+);
+  console.log("appointments", appointments);
+console.log("upcoming", upcoming);
+console.log(
+  checkedInAppointments.map((a) => ({
+    doctor: a.doctorName,
+    token: a.token,
+    current: getQueue(a.doctorId)?.currentToken,
+    ahead:
+      (a.token ?? 0) -
+      (getQueue(a.doctorId)?.currentToken ?? 0),
+  }))
+);
+  const doctorQueue =
+  upcoming ? getQueue(upcoming.doctorId) : undefined;
   return (
     <div>
       <header className="px-5 pt-8 pb-2">
@@ -38,7 +109,19 @@ function Home() {
 
       <section className="px-5 pt-4">
         <Link to="/queue" className="block">
-          <QueueCard q={queueStatus} />
+          {upcoming && doctorQueue && (
+  <QueueCard
+    q={{
+      yourToken: upcoming.token ?? doctorQueue.currentToken,
+      currentToken: doctorQueue.currentToken,
+      totalInQueue: doctorQueue.lastToken,
+      avgMinutesPerPatient: 6,
+      doctorName: upcoming.doctorName,
+      specialty: upcoming.specialty,
+      room: "Room 204",
+    }}
+  />
+)}
         </Link>
       </section>
 
