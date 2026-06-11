@@ -1,40 +1,110 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { appointments as initialAppointments, type Appointment } from "@/data/appointments";
+import type { Appointment } from "@/data/appointments";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  doc,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 type AppointmentContextType = {
   appointments: Appointment[];
-  addAppointment: (appointment: Appointment) => void;
-  cancelAppointment: (id: string) => void;
+  
+addAppointment: (
+  appointment: Appointment
+) => Promise<void>;
+  cancelAppointment: (
+  id: string
+) => Promise<void>;
   checkInAppointment: (
-    id: string,
-    token: number
-  ) => void;
-  completeAppointment: (id: string) => void;
+  id: string,
+  token: number
+) => Promise<void>;
+  completeAppointment: (
+  id: string
+) => Promise<void>;
 };
 
 const AppointmentContext = createContext<AppointmentContextType | null>(null);
 
 export function AppointmentProvider({
+  
   children,
 }: {
   children: ReactNode;
 }) {
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  const { user } = useAuth();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
-  const addAppointment = (appointment: Appointment) => {
-    setAppointments((prev) => [...prev, appointment]);
-  };
+const addAppointment = async (
+  appointment: Appointment
+) => {
+  setAppointments((prev) => [
+    ...prev,
+    appointment,
+  ]);
 
-  const cancelAppointment = (id: string) => {
+  if (!user) return;
+
+  try {
+    console.log("USER", user);
+console.log("WRITING APPOINTMENT", appointment);
+    await setDoc(
+  doc(
+    db,
+    "users",
+    user.id,
+    "appointments",
+    appointment.id
+  ),
+  appointment
+);
+    console.log("WRITE SUCCESS");
+  } catch (error) {
+  console.error("FIRESTORE ERROR", error);
+}
+};
+
+ const cancelAppointment = async (
+  id: string
+) => {
   setAppointments((prev) =>
     prev.map((appt) =>
       appt.id === id
-        ? { ...appt, status: "cancelled" }
+        ? {
+            ...appt,
+            status: "cancelled",
+          }
         : appt
     )
   );
+
+  if (!user) return;
+
+  try {
+    await updateDoc(
+      doc(
+        db,
+        "users",
+        user.id,
+        "appointments",
+        id
+      ),
+      {
+        status: "cancelled",
+      }
+    );
+
+    console.log("CANCEL SUCCESS");
+  } catch (error) {
+    console.error(error);
+  }
 };
-const checkInAppointment = (
+const checkInAppointment = async (
   id: string,
   token: number
 ) => {
@@ -49,8 +119,30 @@ const checkInAppointment = (
         : appt
     )
   );
+
+  if (!user) return;
+
+  try {
+    await updateDoc(
+      doc(
+        db,
+        "users",
+        user.id,
+        "appointments",
+        id
+      ),
+      {
+        status: "checked-in",
+        token,
+      }
+    );
+
+    console.log("CHECKIN SUCCESS");
+  } catch (error) {
+    console.error(error);
+  }
 };
-const completeAppointment = (
+const completeAppointment = async (
   id: string
 ) => {
   setAppointments((prev) =>
@@ -63,22 +155,57 @@ const completeAppointment = (
         : appt
     )
   );
+
+  if (!user) return;
+
+  try {
+    await updateDoc(
+      doc(
+        db,
+        "users",
+        user.id,
+        "appointments",
+        id
+      ),
+      {
+        status: "completed",
+      }
+    );
+
+    console.log("COMPLETE SUCCESS");
+  } catch (error) {
+    console.error(error);
+  }
 };
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+useEffect(() => {
+  const loadAppointments = async () => {
+    if (!user) return;
 
-    const stored = localStorage.getItem("appointments");
+    try {
+      const snapshot = await getDocs(
+        collection(
+          db,
+          "users",
+          user.id,
+          "appointments"
+        )
+      );
 
-    if (stored) {
-      setAppointments(JSON.parse(stored));
+      const firestoreAppointments =
+        snapshot.docs.map(
+          (doc) => doc.data() as Appointment
+        );
+
+     setAppointments(firestoreAppointments);
+    } catch (error) {
+      console.error(error);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  loadAppointments();
+}, [user]);
 
-    localStorage.setItem("appointments", JSON.stringify(appointments));
-  }, [appointments]);
+
 
   return (
     <AppointmentContext.Provider
@@ -106,3 +233,4 @@ export const useAppointments = () => {
 
   return ctx;
 };
+

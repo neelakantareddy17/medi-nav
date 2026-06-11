@@ -26,6 +26,9 @@ function Appointments() {
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Doctor | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(
+  new Date().toISOString().split("T")[0]
+);
   const [confirmed, setConfirmed] = useState(false);
 
   const filtered = doctors.filter(
@@ -33,7 +36,14 @@ function Appointments() {
   );
 
  const { appointments, addAppointment } = useAppointments();
-
+const bookedSlots = appointments
+  .filter(
+    (a) =>
+      a.doctorId === picked?.id &&
+      a.date === selectedDate &&
+      a.status !== "cancelled"
+  )
+  .map((a) => a.time);
   const list = appointments
   .filter((a) => {
     if (tab === "upcoming") {
@@ -111,13 +121,33 @@ function Appointments() {
                   </div>
                   <DoctorCard doctor={picked} />
                   <div>
+  <p className="mb-2 text-sm font-semibold">
+    Select Date
+  </p>
+
+  <input
+    type="date"
+    value={selectedDate}
+    min={new Date().toISOString().split("T")[0]}
+    onChange={(e) =>
+      setSelectedDate(e.target.value)
+    }
+    className="w-full rounded-xl border border-border bg-card p-3"
+  />
+</div>
+                  <div>
                     <p className="mb-2 text-sm font-semibold">Pick a time</p>
-                    <SlotPicker slots={timeSlots} selected={slot} onSelect={setSlot} />
+     <SlotPicker
+  slots={timeSlots}
+  bookedSlots={bookedSlots}
+  selected={slot}
+  onSelect={setSlot}
+/>
                   </div>
              <motion.button
   whileTap={{ scale: 0.97 }}
   disabled={!slot}
-  onClick={() => {
+  onClick={async () => {
     if (!picked || !slot) return;
 
     const alreadyBooked = appointments.some(
@@ -132,16 +162,23 @@ function Appointments() {
       return;
     }
 
- addAppointment({
-  id: crypto.randomUUID(),
-  doctorId: picked.id,
-  doctorName: picked.name,
-  specialty: picked.specialty,
-  date: "Today",
-  time: slot,
-  status: "upcoming",
-  avatar: picked.avatar,
-});
+try {
+  await addAppointment({
+    id: crypto.randomUUID(),
+    doctorId: picked.id,
+    doctorName: picked.name,
+    specialty: picked.specialty,
+   date: selectedDate,
+    time: slot,
+    status: "upcoming",
+    avatar: picked.avatar,
+  });
+
+  setConfirmed(true);
+} catch (error) {
+  console.error(error);
+  alert("Failed to create appointment");
+}
 
     setConfirmed(true);
   }}
