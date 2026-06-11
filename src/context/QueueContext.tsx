@@ -1,4 +1,20 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+
+import { db } from "@/lib/firebase";
 
 type DoctorQueue = {
   doctorId: string;
@@ -8,80 +24,99 @@ type DoctorQueue = {
 
 type QueueContextType = {
   queues: Record<string, DoctorQueue>;
-  generateToken: (doctorId: string) => number;
-  getQueue: (doctorId: string) => DoctorQueue | undefined;
+  generateToken: (
+    doctorId: string
+  ) => Promise<number>;
+  getQueue: (
+    doctorId: string
+  ) => DoctorQueue | undefined;
 };
 
-const QueueContext = createContext<QueueContextType | null>(null);
-
-const defaultQueues = {
-  d1: { doctorId: "d1", currentToken: 20, lastToken: 60 },
-  d2: { doctorId: "d2", currentToken: 10, lastToken: 50 },
-  d3: { doctorId: "d3", currentToken: 15, lastToken: 55 },
-  d4: { doctorId: "d4", currentToken: 5, lastToken: 40 },
-  d5: { doctorId: "d5", currentToken: 12, lastToken: 45 },
-};
+const QueueContext =
+  createContext<QueueContextType | null>(
+    null
+  );
 
 export function QueueProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [queues, setQueues] =
-    useState<Record<string, DoctorQueue>>(defaultQueues);
-useEffect(() => {
-  const stored = localStorage.getItem("queues");
-
-  if (stored) {
-    setQueues(JSON.parse(stored));
-  }
-}, []);
+  const [queues, setQueues] = useState<
+    Record<string, DoctorQueue>
+  >({});
 
   useEffect(() => {
-    localStorage.setItem(
-      "queues",
-      JSON.stringify(queues)
-    );
-  }, [queues]);
+    const loadQueues = async () => {
+      try {
+        const snapshot = await getDocs(
+          collection(db, "queues")
+        );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setQueues((prev) => {
-        const updated = { ...prev };
+        const loaded: Record<
+          string,
+          DoctorQueue
+        > = {};
 
-        Object.keys(updated).forEach((doctorId) => {
-          const queue = updated[doctorId];
+        snapshot.forEach((docSnap) => {
+          const data =
+            docSnap.data() as DoctorQueue;
 
-          if (queue.currentToken < queue.lastToken) {
-            updated[doctorId] = {
-              ...queue,
-              currentToken: queue.currentToken + 1,
-            };
-          }
+          loaded[data.doctorId] = data;
         });
 
-        return updated;
-      });
-    }, 60000);
+        setQueues(loaded);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-    return () => clearInterval(interval);
+    loadQueues();
   }, []);
 
-  const generateToken = (doctorId: string) => {
-  const nextToken = queues[doctorId].lastToken + 1;
+  const generateToken = async (
+    doctorId: string
+  ) => {
+    const queueRef = doc(
+      db,
+      "queues",
+      doctorId
+    );
 
-  setQueues((prev) => ({
-    ...prev,
-    [doctorId]: {
-      ...prev[doctorId],
+    const snapshot = await getDoc(
+      queueRef
+    );
+
+    if (!snapshot.exists()) {
+      throw new Error(
+        "Queue not found"
+      );
+    }
+
+    const queue =
+      snapshot.data() as DoctorQueue;
+
+    const nextToken =
+      queue.lastToken + 1;
+
+    await updateDoc(queueRef, {
       lastToken: nextToken,
-    },
-  }));
+    });
 
-  return nextToken;
-};
+    setQueues((prev) => ({
+      ...prev,
+      [doctorId]: {
+        ...prev[doctorId],
+        lastToken: nextToken,
+      },
+    }));
 
-  const getQueue = (doctorId: string) => queues[doctorId];
+    return nextToken;
+  };
+
+  const getQueue = (
+    doctorId: string
+  ) => queues[doctorId];
 
   return (
     <QueueContext.Provider
@@ -97,7 +132,9 @@ useEffect(() => {
 }
 
 export function useQueue() {
-  const ctx = useContext(QueueContext);
+  const ctx = useContext(
+    QueueContext
+  );
 
   if (!ctx) {
     throw new Error(

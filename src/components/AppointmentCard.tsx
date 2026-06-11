@@ -17,10 +17,19 @@ export function AppointmentCard({ appt }: { appt: Appointment }) {
 } = useAppointments();
 
 const { generateToken } = useQueue();
-const handleCheckIn = () => {
-  const token = generateToken(appt.doctorId);
+const handleCheckIn = async () => {
+  try {
+    const token = await generateToken(
+      appt.doctorId
+    );
 
-  checkInAppointment(appt.id, token);
+    await checkInAppointment(
+      appt.id,
+      token
+    );
+  } catch (error) {
+    console.error(error);
+  }
 };
 
   return (

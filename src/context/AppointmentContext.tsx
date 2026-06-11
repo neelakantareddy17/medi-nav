@@ -195,6 +195,10 @@ useEffect(() => {
         snapshot.docs.map(
           (doc) => doc.data() as Appointment
         );
+        console.log(
+  "FIRESTORE APPOINTMENTS",
+  firestoreAppointments
+);
 
      setAppointments(firestoreAppointments);
     } catch (error) {
