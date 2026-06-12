@@ -17,11 +17,18 @@ export const Route = createFileRoute("/queue")({
 
 function QueuePage() {
   const { appointments } = useAppointments();
-  const { getQueue } = useQueue();
+ const {
+  getQueue,
+  advanceQueue,
+} = useQueue();
 
   const upcoming = [...appointments]
-    .reverse()
-    .find((a) => a.status === "upcoming");
+  .reverse()
+  .find(
+    (a) =>
+      a.status === "checked-in" &&
+      a.token
+  );
 
   if (!upcoming) {
     return (
@@ -111,6 +118,14 @@ function QueuePage() {
             We'll notify you when only 2 patients are ahead.
           </p>
         </div>
+        <button
+  onClick={() =>
+    advanceQueue(upcoming.doctorId)
+  }
+  className="mt-4 w-full rounded-xl bg-foreground py-3 text-background"
+>
+  Advance Queue
+</button>
       </div>
     </div>
   );

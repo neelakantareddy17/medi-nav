@@ -89,13 +89,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-  <AppointmentProvider>
-    <QueueProvider>
+  <QueueProvider>
+    <AppointmentProvider>
       <CartProvider>
         <AppShell />
       </CartProvider>
-    </QueueProvider>
-  </AppointmentProvider>
+    </AppointmentProvider>
+  </QueueProvider>
 </AuthProvider>
     </QueryClientProvider>
   );

@@ -2,8 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Appointment } from "@/data/appointments";
 import {
   collection,
-  getDocs,
-  addDoc,
+  onSnapshot,
   doc,
   setDoc,
   updateDoc,
@@ -11,6 +10,9 @@ import {
 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useQueue } from "@/context/QueueContext";
+
+
 type AppointmentContextType = {
   appointments: Appointment[];
   
@@ -38,6 +40,8 @@ export function AppointmentProvider({
   children: ReactNode;
 }) {
   const { user } = useAuth();
+  const { queues } = useQueue();
+  
   const [appointments, setAppointments] = useState<Appointment[]>([]);
 
 const addAppointment = async (
@@ -62,6 +66,17 @@ console.log("WRITING APPOINTMENT", appointment);
     appointment.id
   ),
   appointment
+);
+await setDoc(
+  doc(
+    db,
+    "appointments",
+    appointment.id
+  ),
+  {
+    ...appointment,
+    userId: user.id,
+  }
 );
     console.log("WRITE SUCCESS");
   } catch (error) {
@@ -98,6 +113,16 @@ console.log("WRITING APPOINTMENT", appointment);
         status: "cancelled",
       }
     );
+    await updateDoc(
+  doc(
+    db,
+    "appointments",
+    id
+  ),
+  {
+    status: "cancelled",
+  }
+);
 
     console.log("CANCEL SUCCESS");
   } catch (error) {
@@ -136,6 +161,17 @@ const checkInAppointment = async (
         token,
       }
     );
+    await updateDoc(
+  doc(
+    db,
+    "appointments",
+    id
+  ),
+  {
+    status: "checked-in",
+    token,
+  }
+);
 
     console.log("CHECKIN SUCCESS");
   } catch (error) {
@@ -171,43 +207,75 @@ const completeAppointment = async (
         status: "completed",
       }
     );
+    await updateDoc(
+  doc(
+    db,
+    "appointments",
+    id
+  ),
+  {
+    status: "completed",
+  }
+);
 
     console.log("COMPLETE SUCCESS");
   } catch (error) {
     console.error(error);
   }
 };
+
 useEffect(() => {
-  const loadAppointments = async () => {
-    if (!user) return;
+  if (!user) {
+    setAppointments([]);
+    return;
+  }
 
-    try {
-      const snapshot = await getDocs(
-        collection(
-          db,
-          "users",
-          user.id,
-          "appointments"
-        )
-      );
-
+  const unsubscribe = onSnapshot(
+    collection(
+      db,
+      "users",
+      user.id,
+      "appointments"
+    ),
+    (snapshot) => {
       const firestoreAppointments =
         snapshot.docs.map(
-          (doc) => doc.data() as Appointment
+          (doc) =>
+            doc.data() as Appointment
         );
-        console.log(
-  "FIRESTORE APPOINTMENTS",
-  firestoreAppointments
-);
 
-     setAppointments(firestoreAppointments);
-    } catch (error) {
+      setAppointments(
+        firestoreAppointments
+      );
+    },
+    (error) => {
       console.error(error);
     }
-  };
+  );
 
-  loadAppointments();
+  return () => unsubscribe();
 }, [user]);
+useEffect(() => {
+  appointments.forEach((appt) => {
+    if (
+      appt.status === "checked-in" &&
+      appt.token
+    ) {
+      const queue =
+        queues[appt.doctorId];
+
+      if (
+        queue &&
+        queue.currentToken >=
+          appt.token
+      ) {
+        completeAppointment(
+          appt.id
+        );
+      }
+    }
+  });
+}, [appointments, queues]);
 
 
 

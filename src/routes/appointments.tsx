@@ -6,10 +6,12 @@ import { PageHeader } from "@/components/PageHeader";
 import { AppointmentCard } from "@/components/AppointmentCard";
 import { DoctorCard } from "@/components/DoctorCard";
 import { SearchBar } from "@/components/SearchBar";
-import { SlotPicker } from "@/components/SlotPicker";
-import { timeSlots } from "@/data/appointments";
+
+
 import { useAppointments } from "@/context/AppointmentContext";
 import { doctors, type Doctor } from "@/data/doctors";
+
+
 
 export const Route = createFileRoute("/appointments")({
   head: () => ({
@@ -25,25 +27,19 @@ function Appointments() {
   const [tab, setTab] = useState<"upcoming" | "past" | "book">("upcoming");
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Doctor | null>(null);
-  const [slot, setSlot] = useState<string | null>(null);
+ 
   const [selectedDate, setSelectedDate] = useState(
   new Date().toISOString().split("T")[0]
 );
   const [confirmed, setConfirmed] = useState(false);
+  
 
   const filtered = doctors.filter(
     (d) => d.name.toLowerCase().includes(search.toLowerCase()) || d.specialty.toLowerCase().includes(search.toLowerCase()),
   );
 
  const { appointments, addAppointment } = useAppointments();
-const bookedSlots = appointments
-  .filter(
-    (a) =>
-      a.doctorId === picked?.id &&
-      a.date === selectedDate &&
-      a.status !== "cancelled"
-  )
-  .map((a) => a.time);
+
   const list = appointments
   .filter((a) => {
     if (tab === "upcoming") {
@@ -73,7 +69,7 @@ const bookedSlots = appointments
           {(["upcoming", "past", "book"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => { setTab(t); setPicked(null); setSlot(null); setConfirmed(false); }}
+              onClick={() => { setTab(t); setPicked(null);  setConfirmed(false); }}
               className={`flex-1 rounded-full py-2 text-xs font-medium capitalize transition-colors ${
                 tab === t ? "bg-background shadow-[var(--shadow-card)] text-foreground" : "text-muted-foreground"
               }`}
@@ -135,32 +131,22 @@ const bookedSlots = appointments
     className="w-full rounded-xl border border-border bg-card p-3"
   />
 </div>
-                  <div>
-                    <p className="mb-2 text-sm font-semibold">Pick a time</p>
-     <SlotPicker
-  slots={timeSlots}
-  bookedSlots={bookedSlots}
-  selected={slot}
-  onSelect={setSlot}
-/>
-                  </div>
+                  <div className="rounded-xl bg-secondary p-4">
+  <p className="text-sm font-medium">
+    Queue token will be generated during check-in.
+  </p>
+
+  <p className="mt-1 text-xs text-muted-foreground">
+    Estimated wait time depends on the live queue.
+  </p>
+</div>
              <motion.button
   whileTap={{ scale: 0.97 }}
-  disabled={!slot}
+  disabled={!picked}
   onClick={async () => {
-    if (!picked || !slot) return;
+   if (!picked) return;
 
-    const alreadyBooked = appointments.some(
-      (a) =>
-        a.doctorId === picked.id &&
-        a.time === slot &&
-        a.status === "upcoming"
-    );
-
-    if (alreadyBooked) {
-      alert("You already have an appointment for this slot");
-      return;
-    }
+   
 
 try {
   await addAppointment({
@@ -169,7 +155,7 @@ try {
     doctorName: picked.name,
     specialty: picked.specialty,
    date: selectedDate,
-    time: slot,
+    time: "Queue Based",
     status: "upcoming",
     avatar: picked.avatar,
   });
@@ -200,10 +186,10 @@ try {
                   </div>
                   <p className="mt-4 text-base font-semibold">Booking confirmed</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {picked.name} · {slot}
+                    {picked.name} · {selectedDate}
                   </p>
                   <button
-                    onClick={() => { setTab("upcoming"); setPicked(null); setSlot(null); setConfirmed(false); }}
+                    onClick={() => { setTab("upcoming"); setPicked(null); setConfirmed(false); }}
                     className="mt-5 w-full rounded-full bg-secondary py-3 text-sm font-medium"
                   >
                     Done
