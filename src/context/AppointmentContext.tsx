@@ -55,8 +55,7 @@ const addAppointment = async (
   if (!user) return;
 
   try {
-    console.log("USER", user);
-console.log("WRITING APPOINTMENT", appointment);
+    
     await setDoc(
   doc(
     db,
@@ -78,7 +77,7 @@ await setDoc(
     userId: user.id,
   }
 );
-    console.log("WRITE SUCCESS");
+    
   } catch (error) {
   console.error("FIRESTORE ERROR", error);
 }
@@ -124,7 +123,7 @@ await setDoc(
   }
 );
 
-    console.log("CANCEL SUCCESS");
+    
   } catch (error) {
     console.error(error);
   }
@@ -173,7 +172,7 @@ const checkInAppointment = async (
   }
 );
 
-    console.log("CHECKIN SUCCESS");
+   
   } catch (error) {
     console.error(error);
   }
@@ -218,7 +217,7 @@ const completeAppointment = async (
   }
 );
 
-    console.log("COMPLETE SUCCESS");
+   
   } catch (error) {
     console.error(error);
   }

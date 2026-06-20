@@ -99,14 +99,10 @@ function Home() {
     </div>
   );
 }
-  console.log("ALL APPOINTMENTS", appointments);
 
-console.log(
-  "CHECKED IN",
-  appointments.filter(
-    (a) => a.status === "checked-in"
-  )
-);
+
+
+
   const checkedInAppointments = appointments.filter(
   (a) => a.status === "checked-in" && a.token
 );
@@ -142,32 +138,9 @@ return best;
     : appointments.find(
         (a) => a.status === "upcoming"
       );
-      console.log("SELECTED APPOINTMENT", {
-  doctor: upcoming?.doctorName,
-  token: upcoming?.token,
-});
-console.log(
-  checkedInAppointments.map((a) => ({
-    doctor: a.doctorName,
-    token: a.token,
-    current: getQueue(a.doctorId)?.currentToken,
-    ahead:
-      (a.token ?? 0) -
-      (getQueue(a.doctorId)?.currentToken ?? 0),
-  }))
-);
-  console.log("appointments", appointments);
-console.log("upcoming", upcoming);
-console.log(
-  checkedInAppointments.map((a) => ({
-    doctor: a.doctorName,
-    token: a.token,
-    current: getQueue(a.doctorId)?.currentToken,
-    ahead:
-      (a.token ?? 0) -
-      (getQueue(a.doctorId)?.currentToken ?? 0),
-  }))
-);
+
+
+ 
   const doctorQueue =
   upcoming ? getQueue(upcoming.doctorId) : undefined;
   return (
