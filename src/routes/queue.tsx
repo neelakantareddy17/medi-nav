@@ -63,7 +63,18 @@ function QueuePage() {
     (q.currentToken / q.yourToken) * 100,
     100
   );
+let queueMessage =
+  "You're in the queue.";
 
+if (ahead <= 3 && ahead > 0) {
+  queueMessage =
+    "⚡ Your turn is approaching. Please proceed to the clinic.";
+}
+
+if (ahead === 0) {
+  queueMessage =
+    "🩺 It's your turn now.";
+}
   return (
     <div>
       <PageHeader
@@ -108,24 +119,25 @@ function QueuePage() {
           <Stat icon={Users} label="In queue" value={`${q.totalInQueue}`} />
         </div>
 
-        <div className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+        <div
+  className={`mt-4 rounded-2xl border p-4 shadow-[var(--shadow-card)] ${
+    ahead === 0
+      ? "border-green-500 bg-green-50"
+      : ahead <= 3
+      ? "border-yellow-500 bg-yellow-50"
+      : "border-border bg-card"
+  }`}
+>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <MapPin className="h-3.5 w-3.5" />
             <span>{q.room}</span>
           </div>
 
           <p className="mt-2 text-sm font-medium">
-            We'll notify you when only 2 patients are ahead.
+            {queueMessage}
           </p>
         </div>
-        <button
-  onClick={() =>
-    advanceQueue(upcoming.doctorId)
-  }
-  className="mt-4 w-full rounded-xl bg-foreground py-3 text-background"
->
-  Advance Queue
-</button>
+      
       </div>
     </div>
   );

@@ -1,16 +1,43 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Calendar, Clock, Pill, User } from "lucide-react";
 import { motion } from "framer-motion";
-
-const tabs = [
+import { useAuth } from "@/context/AuthContext";
+const patientTabs = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/appointments", label: "Visits", icon: Calendar },
+  {
+    to: "/appointments",
+    label: "Visits",
+    icon: Calendar,
+  },
   { to: "/queue", label: "Queue", icon: Clock },
-  { to: "/medicines", label: "Meds", icon: Pill },
-  { to: "/profile", label: "Profile", icon: User },
+  {
+    to: "/medicines",
+    label: "Meds",
+    icon: Pill,
+  },
+  {
+    to: "/profile",
+    label: "Profile",
+    icon: User,
+  },
 ] as const;
 
+const doctorTabs = [
+  { to: "/", label: "Dashboard", icon: Home },
+  { to: "/queue", label: "Queue", icon: Clock },
+  {
+    to: "/profile",
+    label: "Profile",
+    icon: User,
+  },
+] as const;
 export function BottomNavigation() {
+  const { user } = useAuth();
+
+  const tabs = user?.isDoctor
+    ? doctorTabs
+    : patientTabs;
+
   const { location } = useRouterState();
   const path = location.pathname;
 

@@ -10,7 +10,7 @@ import {
 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { useQueue } from "@/context/QueueContext";
+
 
 
 type AppointmentContextType = {
@@ -40,7 +40,7 @@ export function AppointmentProvider({
   children: ReactNode;
 }) {
   const { user } = useAuth();
-  const { queues } = useQueue();
+  
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
 
@@ -255,27 +255,7 @@ useEffect(() => {
 
   return () => unsubscribe();
 }, [user]);
-useEffect(() => {
-  appointments.forEach((appt) => {
-    if (
-      appt.status === "checked-in" &&
-      appt.token
-    ) {
-      const queue =
-        queues[appt.doctorId];
 
-      if (
-        queue &&
-        queue.currentToken >=
-          appt.token
-      ) {
-        completeAppointment(
-          appt.id
-        );
-      }
-    }
-  });
-}, [appointments, queues]);
 
 
 

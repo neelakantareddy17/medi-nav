@@ -27,8 +27,78 @@ const quickActions = [
 
 function Home() {
   const { user } = useAuth();
-  const { getQueue } = useQueue();
+ const {
+  getQueue,
+  advanceQueue,
+  queues,
+} = useQueue();
   const { appointments } = useAppointments();
+  if (user?.isDoctor) {
+  const doctorQueue = queues["d1"];
+
+  if (!doctorQueue) return null;
+
+  const waiting =
+    doctorQueue.lastToken -
+    doctorQueue.currentToken;
+
+  return (
+    <div>
+      <header className="px-5 pt-8 pb-2">
+        <p className="text-sm text-muted-foreground">
+          Doctor Dashboard
+        </p>
+
+        <h1 className="text-2xl font-bold tracking-tight">
+          Hi, Dr. {user.name} 👋
+        </h1>
+      </header>
+
+      <div className="px-5 space-y-4">
+        <div className="rounded-3xl bg-foreground p-6 text-background">
+          <p className="text-sm opacity-70">
+            Current Token
+          </p>
+
+          <p className="text-6xl font-bold">
+            #{doctorQueue.currentToken}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-card p-4 border">
+            <p className="text-xs text-muted-foreground">
+              Waiting Patients
+            </p>
+
+            <p className="text-3xl font-bold">
+              {waiting}
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-card p-4 border">
+            <p className="text-xs text-muted-foreground">
+              Last Token
+            </p>
+
+            <p className="text-3xl font-bold">
+              #{doctorQueue.lastToken}
+            </p>
+          </div>
+        </div>
+
+       <button
+  onClick={async () => {
+    await advanceQueue("d1");
+  }}
+  className="w-full rounded-2xl bg-foreground py-4 text-background font-semibold"
+>
+  Call Next Patient
+</button>
+      </div>
+    </div>
+  );
+}
   console.log("ALL APPOINTMENTS", appointments);
 
 console.log(

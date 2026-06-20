@@ -15,8 +15,9 @@ type AuthUser = {
   id: string;
   name: string;
   email: string;
+  isDoctor: boolean;
+  doctorId?: string;
 };
-
 type AuthContextValue = {
   user: AuthUser | null;
   hydrated: boolean;
@@ -29,12 +30,25 @@ type AuthContextValue = {
 const AuthContext = React.createContext<AuthContextValue | undefined>(
   undefined
 );
+const DOCTOR_MAP: Record<
+  string,
+  string
+> = {
+  "neelakantareddy017@gmail.com":
+    "d1",
+};
 
 function mapUser(user: User): AuthUser {
+  const email = user.email || "";
+
   return {
     id: user.uid,
     name: user.displayName || "User",
-    email: user.email || "",
+    email,
+    isDoctor:
+      email in DOCTOR_MAP,
+    doctorId:
+      DOCTOR_MAP[email],
   };
 }
 

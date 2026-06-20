@@ -57,10 +57,10 @@ export function SignupPage() {
 
           <div className="mt-10">
             <p className="text-sm font-medium text-muted-foreground">Create account</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Start your demo profile</h1>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
-              Add your details once and continue into the queue dashboard instantly.
-            </p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Create your profile</h1>
+           <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+  Manage appointments, track live queues, and access healthcare services in one place.
+</p>
           </div>
 
           <div className="mt-8 rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
@@ -69,10 +69,12 @@ export function SignupPage() {
                 <UserRound className="h-6 w-6" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">Quick setup</p>
+                <p className="text-sm font-medium">
+  Secure Registration
+</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  This is a frontend-only signup that stores a fake user in local storage.
-                </p>
+  Create an account securely using Firebase Authentication.
+</p>
               </div>
             </div>
 
@@ -93,7 +95,7 @@ export function SignupPage() {
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="demo@gmail.com"
+                  placeholder="enter your email(@gmail.com)"
                   className="h-11 rounded-2xl bg-background"
                 />
               </div>
@@ -131,7 +133,7 @@ export function SignupPage() {
 
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5" />
-          Premium minimal UI, no backend authentication yet
+         Real-time hospital queue management
         </div>
       </motion.div>
     </div>

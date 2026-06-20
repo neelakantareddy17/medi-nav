@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 export function LoginPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const [email, setEmail] = React.useState("demo@gmail.com");
+  const [email, setEmail] = React.useState("@gmail.com");
   const [password, setPassword] = React.useState("");
 
  const handleLogin = async () => {
@@ -78,7 +78,7 @@ export function LoginPage() {
               <div className="flex-1">
                 <p className="text-sm font-medium">Fast check-in</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  A lightweight demo flow for quick access while the real auth layer is built later.
+                  Skip the long queues and check in to your appointments with ease.
                 </p>
               </div>
             </div>
@@ -90,7 +90,7 @@ export function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="demo@gmail.com"
+                  placeholder="enter your email(@gmail.com)"
                   className="h-11 rounded-2xl bg-background"
                 />
               </div>
@@ -101,7 +101,7 @@ export function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Enter any password"
+                  placeholder="Enter your password"
                   className="h-11 rounded-2xl bg-background"
                 />
               </div>
@@ -125,7 +125,9 @@ export function LoginPage() {
                 Create account
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <p className="text-xs text-muted-foreground">Demo only</p>
+              <p className="text-xs text-muted-foreground">No account? <Link to="/signup" className="font-medium underline-offset-4 hover:underline">
+                Sign up
+              </Link></p>
             </div>
           </div>
         </div>
