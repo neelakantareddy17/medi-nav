@@ -1,0 +1,1 @@
+import{j as e}from"./index-MT_pv88i.js";function a({title:r,subtitle:t}){return e.jsxs("header",{className:"px-5 pt-6 pb-3",children:[e.jsx("h1",{className:"text-2xl font-bold tracking-tight",children:r}),t&&e.jsx("p",{className:"mt-1 text-sm text-muted-foreground",children:t})]})}export{a as P};
